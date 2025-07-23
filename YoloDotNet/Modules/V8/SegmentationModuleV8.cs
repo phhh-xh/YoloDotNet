@@ -19,13 +19,17 @@ namespace YoloDotNet.Modules.V8
         public OnnxModel OnnxModel => _yoloCore.OnnxModel;
 
         // Represents a fixed-size float buffer of 32 elements for mask weights.
-        // Uses the InlineArray attribute to avoid heap allocations entirely.
-        // This structure is stack-allocated when used inside methods or structs,
-        // making it ideal for high-performance scenarios where per-frame allocations must be avoided.
-        [InlineArray(32)]
+        // Uses a fixed-size array for .NET 6.0 compatibility.
+        // This structure provides efficient access to mask weights.
         internal struct MaskWeights32
         {
-            private float _mask;
+            private unsafe fixed float _masks[32];
+
+            public unsafe float this[int index]
+            {
+                get => _masks[index];
+                set => _masks[index] = value;
+            }
         }
 
         public SegmentationModuleV8(YoloCore yoloCore)
